@@ -4,7 +4,7 @@ To use:
 1. copy `isotonic_regression_l1_total_order.py` and `peak_finder.py` into your folder
 2. do `from peak_finder import peak_finder`
 3. OPTION 1, do `peak_finder(y,n_peaks)` where `y` is the signal where you want to find peaks, and `n_peaks` is an approximate of the number of peaks
-3. OPTION 2, do `peak_finder_auto(y)` where `y` is the signal where you want to find peaks. Peak is automatically selected.
+3. OPTION 2, do `peak_finder_auto(y)` where `y` is the signal where you want to find peaks. Peak is automatically selected. There is an option parameter `sensitivity = 0.05` that must be between `0` and `1`. Larger `sensitivity` means that the algorithm will detect more peaks.
 
 
 Return values:
@@ -71,7 +71,7 @@ fig.suptitle(f"Auto-mode, run time (sec) = {np.round(run_time,2)}")
 
 
 
-    Text(0.5, 0.98, 'Auto-mode, run time (sec) = 4.57')
+    Text(0.5, 0.98, 'Auto-mode, run time (sec) = 4.53')
 
 
 
