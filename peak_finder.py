@@ -57,6 +57,15 @@ def peak_finder_improve(y, S_best, opt_best):
     return [], S_best, opt_best
 
 def peak_finder(y,n_peaks,n_trials= 1000):
+    if n_peaks == 0:
+        x_inc = isotonic_regression_l1_total_order(y,np.ones_like(y))
+        x_dec = isotonic_regression_l1_total_order_decrease(y,np.ones_like(y))
+        opt_inc = np.sum(np.abs(y-x_inc))
+        opt_dec = np.sum(np.abs(y-x_dec))
+        if opt_inc > opt_dec:
+            return [], x_dec, opt_dec
+        else:
+            return [], x_dec, opt_inc
     if n_peaks == 1:
         S = [0]
         x,opt = solve_minimization(y, [0])
@@ -75,3 +84,20 @@ def peak_finder(y,n_peaks,n_trials= 1000):
             x,S,opt = x_imp, S_imp, opt_imp
             x_imp, S_imp, opt_imp = peak_finder_improve(y, S, opt)
         return S[::2],x,opt
+
+def peak_finder_auto(y,n_peaks_max = 3, sensitivity=0.05):
+    S_list = []
+    x_list = []
+    opt_list = []
+    for n_peaks in range(n_peaks_max+2):
+
+        S,x,opt = peak_finder(y,n_peaks)
+        S_list.append(S)
+        x_list.append(x)
+        opt_list.append(opt)
+    improvement = np.diff(-np.array(opt_list))
+    n_peaks = 1
+    while n_peaks < n_peaks_max and improvement[n_peaks] > sensitivity*improvement[n_peaks-1]:
+        n_peaks += 1
+#     n_peaks = np.argmax()
+    return S_list[n_peaks], x_list[n_peaks], opt_list[n_peaks]

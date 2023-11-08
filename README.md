@@ -3,15 +3,21 @@
 To use: 
 1. copy `isotonic_regression_l1_total_order.py` and `peak_finder.py` into your folder
 2. do `from peak_finder import peak_finder`
-3. do `peak_finder(y,n_peaks)` where `y` is the signal where you want to find peaks, and `n_peaks` is an approximate of the number of peaks
+3. OPTION 1, do `peak_finder(y,n_peaks)` where `y` is the signal where you want to find peaks, and `n_peaks` is an approximate of the number of peaks
+3. OPTION 2, do `peak_finder_auto(y)` where `y` is the signal where you want to find peaks. Peak is automatically selected.
 
-Results:
-S,x,opt = peak_finder(y,n_peaks)
+
+Return values:
+`S,x,opt = peak_finder(y,n_peaks)`
+1. `S` indices of the peaks
+2. `x` an approximation to `y` with only peaks at `S`
+3. `opt = np.sum(np.abs(x-y))`
 
 
 
 ```python
-from peak_finder import peak_finder
+from peak_finder import peak_finder, peak_finder_auto
+from toy_examples import sin_waves, mountains_and_plateau
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -19,110 +25,109 @@ import time
 
 
 ```python
-def get_toy_example(n, n_peaks=3, noise = 0.01):
-    grids = np.linspace(0, np.pi, n+1)
-    # Sine function values at the lattice points
-    y = np.sin(0.85*grids)*np.sin(n_peaks*grids)**2 + noise*np.random.randn(n+1)
-    y[int(n/10)] += 0.25
-    y[int(4.1*n/10)] += 0.25
-    y[int((9.5*n)/10)] += 0.25
-    return y
+y_examples = [sin_waves(n_peaks=1),sin_waves(n_peaks=2),sin_waves(n_peaks=3), mountains_and_plateau()]
+y_names = ["1peak", "2peaks","3peaks", "plateau"]
+n_peaks_true = [1,2,3,3]
 ```
+
+## Automatically detect the number of peaks
 
 
 ```python
+S_all = []
+x_all = []
+opt_all = []
 start = time.time()
 
-n_peaks = 3
-y = get_toy_example(200,n_peaks)
-S,x,opt = peak_finder(y,n_peaks)
-
+for i,y in enumerate(y_examples):
+    S,x,opt = peak_finder_auto(y)
+    S_all.append(S)
+    x_all.append(x)
+    opt_all.append(opt)
 end = time.time()
-print(end-start)
+run_time = (end-start)
 ```
-
-    0.17232799530029297
-
 
 
 ```python
+fig, axes = plt.subplots(2, 2)
+axes = axes.flatten()
+for i,y in enumerate(y_examples):
+    x = x_all[i]
+    S = S_all[i]
+    ax = axes[i]
+    ax.plot(y, label='original',linewidth=0.5,zorder=2)
+    ax.plot(x, label="smoothed",linewidth=5,zorder=-1,alpha=0.4)
 
-plt.plot(y)
-plt.plot(x)
-for j in S:
-    plt.axvline(x=j,color='black')
+
+    for j in S:
+        ax.axvline(x=j,color='black', linestyle="--", label='peaks')
+    if i == 0:
+        ax.legend()
+fig.suptitle(f"Auto-mode, run time (sec) = {np.round(run_time,2)}")
+
 ```
+
+
+
+
+    Text(0.5, 0.98, 'Auto-mode, run time (sec) = 4.57')
+
+
 
 
     
-![png](README_files/README_4_0.png)
+![png](README_files/README_5_1.png)
     
 
 
-
-```python
-
-```
+## Setting the number of peaks manually speed things up
 
 
 ```python
-def plot_mountains_and_plateau():
-    x = np.arange(1000)  # Range from 0 to 999
-    y = np.zeros_like(x, dtype=float)  # Initialize y with zeros, as floats
-
-    # First mountain (Gaussian)
-    y += 100.0 * np.exp(-0.5 * ((x - 200.0) / 50.0) ** 2)  # Mountain at x=200
-
-    # Second mountain (Sharp, sawtooth-like peak)
-    # Define the slope of the ascent and descent
-    ascent_slope = 0.8
-    descent_slope = -0.9
-
-    # Calculate the ascent and descent of the sawtooth
-    ascent = ascent_slope * (x - 666.0 + 50.0 * (x > 666)) * (x > 666) * (x < 716)
-    descent = descent_slope * (x - 777.0) * (x >= 716) * (x < 799)
-    y += np.maximum(0, ascent + descent)
-
-    # Define the plateau as a flat line between x=400 and x=555
-    y[400:556] = 10.0  # Flat plateau at height 10
-
-    return y
-
-y = plot_mountains_and_plateau()
-y += np.random.randn(len(y))
-```
-
-
-```python
+S_all = []
+x_all = []
+opt_all = []
 start = time.time()
 
-n_peaks = 3
-# y = get_toy_example(200,n_peaks)
-S,x,opt = peak_finder(y,n_peaks)
-
+for i,y in enumerate(y_examples):
+    n_peaks = n_peaks_true[i]
+    S,x,opt = peak_finder(y,n_peaks)
+    S_all.append(S)
+    x_all.append(x)
+    opt_all.append(opt)
 end = time.time()
-print(end-start)
+run_time = (end-start)
 ```
-
-    0.8469440937042236
-
 
 
 ```python
+fig, axes = plt.subplots(2, 2)
+axes = axes.flatten()
+for i,y in enumerate(y_examples):
+    x = x_all[i]
+    S = S_all[i]
+    ax = axes[i]
+    ax.plot(y, label='original',linewidth=0.5,zorder=2)
+    ax.plot(x, label="smoothed",linewidth=5,zorder=-1,alpha=0.4)
 
-plt.plot(y)
-plt.plot(x)
-for j in S:
-    plt.axvline(x=j,color='black')
+
+    for j in S:
+        ax.axvline(x=j,color='black', linestyle="--", label='peaks')
+    if i == 0:
+        ax.legend()
+fig.suptitle(f"Manual-mode, run time (sec) = {np.round(run_time,2)}")
 ```
 
 
+
+
+    Text(0.5, 0.98, 'Manual-mode, run time (sec) = 1.18')
+
+
+
+
     
-![png](README_files/README_8_0.png)
+![png](README_files/README_8_1.png)
     
 
-
-
-```python
-
-```
