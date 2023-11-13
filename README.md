@@ -131,3 +131,16 @@ fig.suptitle(f"Manual-mode, run time (sec) = {np.round(run_time,2)}")
 ![png](README_files/README_8_1.png)
     
 
+
+# Related works
+
+[py-findpeaks](https://github.com/MonsieurV/py-findpeaks)
+
+[peakdet.m](https://billauer.co.il/blog/2009/01/peakdet-matlab-octave/)
+
+[peakdet.m translated to Python](https://gist.github.com/endolith/250860)
+
+
+```python
+
+```
